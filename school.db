@@ -1,0 +1,160 @@
+create database school_db;
+create table user(
+	user_id int primary key,
+    username varchar(25) not null,
+    password varchar(20) not null
+);
+
+create table section(
+	section_id int,
+    section varchar(20) not null
+);
+
+create table department(
+    dept_id int primary key,
+    department varchar(15) not null,
+)
+
+create table all_class(
+	class_id int primary key,
+    class varchar(20)
+);
+
+create table subjects(
+	subject_id int primary key,
+    sch_subjects varchar(20)
+);
+
+create table staff(
+	staff_id int primary key,
+    firstName varchar(20) not null,
+    lastName varchar(20) not null,
+    phoneNumber int not null,
+    email varchar(30) not null,
+    department int not null,
+    foreign key (department) references department(dept_id),
+    formClass int null,
+    foreign key (formClass) references all_class(class_id),
+    salary varchar(10) not null, 
+    accountNum varchar(10) not null,
+    bank varchar(15) not null,
+    dateOfBirth date not null,
+    subjectTeaching int,
+    foreign key (subjectTeaching) references subjects(subject_id)        
+)
+
+create table parent_guardian(
+	pg_id int primary key,
+    firstName varchar(25) not null,
+    lastName varchar(25) not null, 
+    phoneNumber varchar(50) not null,
+    email varchar(50) not null,
+    address varchar(100) not null
+);
+
+create table student(
+	student_id int primary key,
+    firstName varchar(20) not null,
+    lastName varchar(20) not null, 
+    parentOrguardian int not null,
+    foreign key (parentOrguardian) references parent_guardian(pg_id)
+    address int not null,
+    foreign key (address) references parent_guardian(pg_id),
+    contact int not null,
+    foreign key (contact) references parent_guardian(pg_id),
+    class int null, 
+    foreign key (class) references all_class(class_id),
+    classTeacher int not null,
+    foreign key (classTeacher) references staff(staff_id)   
+)
+
+
+
+
+
+
+## postgresql version
+
+  create table software_user(
+  	user_id serial primary key,
+      username varchar(25) not null,
+      password varchar(20) not null
+  )
+
+ create table section(
+ 	section_id serial primary key,
+     section varchar(20) not null
+ );
+
+ create table department(
+     dept_id serial primary key,
+     department varchar(15) not null
+ );
+
+ create table all_class(
+ 	class_id serial primary key,
+     class varchar(20)
+ );
+
+ create table subjects(
+ 	subject_id serial primary key,
+     sch_subjects varchar(20)
+ );
+
+ create table staff(
+ 	staff_id serial primary key,
+     firstName varchar(20) not null,
+     lastName varchar(20) not null,
+     phoneNumber varchar(50) not null,
+     email varchar(50) not null,
+     department int not null,
+ 	constraint fk_department_department
+     	foreign key (department) 
+ 		references department(dept_id),
+     formClass int null,
+ 	constraint fk_formClass_all_class
+     	foreign key (formClass) 
+ 		references all_class(class_id),
+     salary varchar(10) not null, 
+     accountNum varchar(10) not null,
+     bank varchar(15) not null,
+     dateOfBirth date not null,
+     subjectTeaching int,
+ 	constraint fk_subjectTeaching_subjects
+     	foreign key (subjectTeaching) 
+ 		references subjects(subject_id)        
+ );
+
+ create table parent_guardian(
+ 	pg_id serial primary key,
+     firstName varchar(25) not null,
+     lastName varchar(25) not null, 
+     phoneNumber varchar(50) not null,
+     email varchar(50) not null,
+     address varchar(100) not null
+ );
+
+ create table student(
+ 	student_id serial primary key,
+     firstName varchar(20) not null,
+     lastName varchar(20) not null,
+	 parentOrguardian int not null,
+     	foreign key (parentOrguardian) 
+ 		references parent_guardian(pg_id),
+     address int not null,
+ 	constraint fk_address_parent_guardian
+     	foreign key (address) 
+ 		references parent_guardian(pg_id),
+     contact int not null, 
+ 	constraint fk_contact_parent_guardian
+     	foreign key (contact) 
+ 		references parent_guardian(pg_id),
+     class int null,
+ 	constraint fk_class_all_class
+     	foreign key (class) 
+ 		references all_class(class_id),
+     classTeacher int not null, 
+     constraint fk_classTeacher_staff
+        foreign key(classTeacher),
+        references staff(staff_id)
+ )
