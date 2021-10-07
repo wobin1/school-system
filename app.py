@@ -32,8 +32,8 @@ def create_user():
 
     if request.method=="POST":
         data = json.loads(request.data,strict=False)
-        user = data[0]['username']
-        passcode = data[0]['password']
+        user = data['username']
+        passcode = data['password']
 
         print(user)
         print(passcode)
@@ -43,6 +43,8 @@ def create_user():
         conn.commit()
         conn.close()
 
+        return "User created successfully!!!!"
+
 @app.route('/create_department', methods=["POST"]) 
 def create_department():
     conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
@@ -50,7 +52,7 @@ def create_department():
 
     if request.method=="POST":
         data = json.loads(request.data,strict=False)
-        department = data[0]['department']
+        department = data['department']
  
         print(department)
 
@@ -70,25 +72,21 @@ def create_student():
 
     if request.method=="POST":
         data = json.loads(request.data,strict=False)
-        firstname = data[0]['fname']
-        lastname = data[0]['lname']
-        pg = data[0]['parentorguardian']
-        paddress = data[0]['address']
-        pcontact = data[0]['contact']
-        pclass = data[0]['presentclass']
-        classteacher = data[0]['classteacher']
+        firstname = data['firstname']
+        lastname = data['lastname']
+        pg_id = data['pg_id']
+        class_id = data['class_id']
+        staff_id = data['staff_id']
         
         print(firstname)
         print(lastname)
-        print(pg)
-        print(paddress)
-        print(pcontact)
-        print(pclass)
-        print(classteacher)
-        query = "INSERT INTO STUDENT(FNAME, LNAME, PARENTORGUARDIAN, ADDRESS, CONTACT, PRESENTCLASS, CLASSTEACHER) VALUES( %s, %s, %s, %s, %s, %s, %s)"
-        bind = (firstname, lastname, phonenumber, Paddress, pcontact, pclass, classteacher)
+        print(pg_id)
+        print(class_id)
+        print(staff_id)
+        query = "INSERT INTO STUDENT(FIRSTNAME, LASTNAME, PG_ID, CLASS_ID, STAFF_ID) VALUES( %s, %s, %s, %s, %s)"
+        bind = (firstname, lastname, pg_id, class_id, staff_id)
         cursor.execute( query, bind )
-        # conn.commit()
+        conn.commit()
         conn.close()
 
     return "done"
@@ -112,7 +110,7 @@ def create_parent():
         print(email)
         print(address)
 
-        query = "INSERT INTO PARENT_GUARDIAN(FNAME, LNAME, PNUMBER, EMAIL, ADDRESS) VALUES( %s, %s, %s, %s, %s)"
+        query = "INSERT INTO PARENT_GUARDIAN(FIRSTNAME, LASTNAME, PHONENUMBER, EMAIL, ADDRESS) VALUES( %s, %s, %s, %s, %s)"
         bind = (firstname, lastname, phonenumber, email, address)
         cursor.execute( query, bind )
         conn.commit()
@@ -127,11 +125,11 @@ def create_subject():
 
     if request.method=="POST":
         data = json.loads(request.data,strict=False)
-        subject = data[0]['subject']
+        subject = data['subject']
  
         print(subject)
 
-        query = "INSERT INTO SUBJECT(SUBJECT) VALUES( %s)"
+        query = "INSERT INTO SUBJECTS(SCH_SUBJECTS) VALUES( %s)"
         bind = (subject,)
         cursor.execute( query, bind )
         conn.commit()
@@ -140,25 +138,25 @@ def create_subject():
     return "done"
 
 
-@app.route('/create_staf', methods=["POST"]) 
+@app.route('/create_staff', methods=["POST"]) 
 def create_staff():
     conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
     cursor = conn.cursor()
 
     if request.method=="POST":
         data = json.loads(request.data,strict=False)
-        firstname = data[0]['fname']
-        lastname = data[0]['lname']
-        pnumber = data[0]['pnumber']
-        department = data[0]['department']
-        formclass = data[0]['formclass']
-        account = data[0]['accountnumber']
-        salary = data[0]['salary']
-        bank = data[0]['bank']
-        dob = data[0]['dateofbirth']
-        subject = data[0]['subjectteaching']
-        email = data[0]['email']
-        address = data[0]['address']
+        firstname = data['firstname']
+        lastname = data['lastname']
+        phonenumber = data['phonenumber']
+        email = data['email']
+        department = data['department']
+        formclass = data['formclass']
+        salary = data['salary']
+        account = data['accountnum']
+        bank = data['bank']
+        dob = data['dateofbirth']
+        subject = data['subjectteaching']
+        address = data['address']
         
         print(firstname)
         print(lastname)
@@ -166,13 +164,47 @@ def create_staff():
         print(email)
         print(address)
 
-        query = "INSERT INTO STAFF(FNAME, LNAME, PNUMBER, DEPARTMENT, FORMCLASS, ACCOUNT, SALARY, BANK, DATEOFBRITH, SUBJECTTEACHING, EMAIL, ADDRESS) VALUES( %s, %s, %s, %s, %s)"
-        bind = (firstname, lastname, phonenumber, email, address)
+        query = "INSERT INTO STAFF(FIRSTNAME, LASTNAME, PHONENUMBER, EMAIL, DEPARTMENT, FORMCLASS, SALARY, ACCOUNTNUM, BANK, DATEOFBIRTH, SUBJECTTEACHING, ADDRESS) VALUES( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        bind = (firstname, lastname, phonenumber, email, department, formclass, salary, account, bank, dob, subject, address,)
         cursor.execute( query, bind )
         conn.commit()
         conn.close()
 
     return "done"
+
+@app.route('/all_classes', methods=["GET"])
+def all_class():
+    conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM ALL_CLASSES')
+    rows = cursor.fetchall()
+    print(rows)
+
+    data = []
+    for row in rows:
+        row_data = {"id": row[0], "class": row[1]}   
+        data.append(row_data)
+
+        conn.close()
+    return {"classes": data}
+
+@app.route('/all_students', methods=["GET"])
+def all_students():
+    conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM STUDENT')
+    rows = cursor.fetchall()
+    print(rows)
+
+    data = []
+    for row in rows:
+        row_data = {"id": row[0], "fname": row[1], "lname":row[2], "parentorguardian": row[3], "address": row[4], "contact": row[5], "presentclass": row[6], "classteacher": row[7]}   
+        data.append(row_data)
+
+        conn.close()
+    return {"classes": data}
+
+
 
 
 
