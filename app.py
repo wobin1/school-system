@@ -1,103 +1,183 @@
-from flask import Flask 
+from flask import Flask, request, json 
 from flask_sqlalchemy import SQLAlchemy
+import psycopg2
 from flask_migrate import Migrate
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:password@localhost:5432/school_db'
-app.config['SQLALCHEMY _TRACT_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:password@localhost:5432/school_db'
+# app.config['SQLALCHEMY _TRACT_MODIFICATIONS'] = False
 
-db=SQLAlchemy(app)
-migrate = Migrate(app, db)
-
-class Software_user(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=False)
-    password = db.Column(db.String(15), nullable=False)
-
-    def __repr__(self):
-        return f"({self.username})"
-
-class Section(db.Model):
-    section_id = db.Column(db.Integer, primary_key=True)
-    section = db.Column(db.String(25), nullable=False)
-
-    def __repr__(self):
-        return f"({self.section})"
+# db=SQLAlchemy(app)
+# migrate = Migrate(app, db)
 
 
-class Department(db.Model):
-    department_id = db.Column(db.Integer, primary_key=True)
-    department = db.Column(db.String(25), nullable=False)
-    staff = db.relationship('Staff', backref='Department', lazy=True)
 
-    def __repr__(self):
-        return f"({self.department})"
+def getconnection(database_name, user_name, user_password, db_host, db_port):
+    conn = psycopg2.connect(
+        database = database_name,
+        user = user_name,
+        password = user_password,
+        host = db_host,
+        port = db_port
+    )
 
-class All_classes(db.Model):
-    class_id = db.Column(db.Integer, primary_key=True)
-    classes = db.Column(db.String(25), nullable=False)
-    staff = db.relationship('Staff', backref='All_class', lazy=True)
-    student = db.relationship('Student', backref='All_class', lazy=True)
-
-    def __repr__(self):
-        return f"({self.classes})"
-
-class Subject(db.Model):
-    subject_id = db.Column(db.Integer, primary_key=True)
-    subject = db.Column(db.String(25), nullable=False)
-    staff = db.relationship('Staff', backref='Subject', lazy=True)
-
-    def __repr__(self):
-        return f"({self.subjects})"
-
-class Staff(db.Model):
-    staff_id = db.Column(db.Integer, primary_key=True)
-    fname = db.Column(db.String(25), nullable=False)
-    lname = db.Column(db.String(25), nullable=False)
-    pnumber = db.Column(db.String(11), nullable=False)
-    department = db.Column(db.Integer, db.ForeignKey(Department.department_id), nullable=False)
-    formclass = db.Column(db.Integer, db.ForeignKey(All_classes.class_id), nullable=True)
-    salary = db.Column(db.Integer, nullable=False)
-    accountnumber = db.Column(db.Integer, nullable=False)
-    bank = db.Column(db.String(50), nullable=False)
-    dataofbirth = db.Column(db.String(50), nullable=False)
-    subjectteaching = db.Column(db.Integer, db.ForeignKey(Subject.subject_id), nullable=True)
-    student = db.ForeignKey('Student', backref='Staff', lazy=True)
+    return conn
 
 
-    def __repr__(self):
-        return f"({self.fname}, {self.lname})"
+@app.route('/create_user', methods=["POST"])
+def create_user():
+    conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
+    cursor = conn.cursor()
 
-class Parent_guardian(db.Model):
-    pg_id = db.Column(db.Integer, primary_key=True)
-    fname = db.Column(db.String(25), nullable=False)
-    lname = db.Column(db.String(25), nullable=False)
-    pnumber = db.Column(db.Integer, nullable=False)
-    email = db.Column(db.String(35), nullable=False)
-    address = db.Column(db.String(50), nullable=False)
-    student = db.relationship("Student", backref='Parent_guardian', lazy=True)
+    if request.method=="POST":
+        data = json.loads(request.data,strict=False)
+        user = data[0]['username']
+        passcode = data[0]['password']
 
-    def __repr__(self):
-        return f"({self.fname}, {self.lname})"
+        print(user)
+        print(passcode)
+        query = "INSERT INTO SOFTWARE_USER(username, password) VALUES(%s, %s)"
+        bind = (user, passcode,)
+        cursor.execute( query, bind )
+        conn.commit()
+        conn.close()
 
-class Student(db.Model):
-    student_id = db.Column(db.Integer, primary_key=True)
-    fname = db.Column(db.String(25), nullable=False)
-    lname = db.Column(db.String(25), nullable=False)
-    parentorguardian = db.Column(db.Integer, db.ForeignKey(Parent_guardian.pg_id), nullable=False)
-    address = db.Column(db.Integer, db.ForeignKey(Parent_guardian.pg_id), nullable=False)
-    contact = db.Column(db.Integer, db.ForeignKey(Parent_guardian.pg_id), nullable=False)
-    presentclass = db.Column(db.Integer, db.ForeignKey(All_classes.class_id), nullable=False)
-    classteacher = db.Column(db.Integer, db.ForeignKey(Staff.staff_id), nullable=False)
+@app.route('/create_department', methods=["POST"]) 
+def create_department():
+    conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
+    cursor = conn.cursor()
 
-    def __repr__(self):
-        return f"({self.fname} {self.lname})"
+    if request.method=="POST":
+        data = json.loads(request.data,strict=False)
+        department = data[0]['department']
+ 
+        print(department)
+
+        query = "INSERT INTO DEPARTMENT(DEPARTMENT) VALUES( %s)"
+        bind = (department,)
+        cursor.execute( query, bind )
+        conn.commit()
+        conn.close()
+
+    return "done"
 
 
-@app.route('/')
-def index():
-    return "Hello world"
+@app.route('/create_student', methods=["POST"]) 
+def create_student():
+    conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
+    cursor = conn.cursor()
+
+    if request.method=="POST":
+        data = json.loads(request.data,strict=False)
+        firstname = data[0]['fname']
+        lastname = data[0]['lname']
+        pg = data[0]['parentorguardian']
+        paddress = data[0]['address']
+        pcontact = data[0]['contact']
+        pclass = data[0]['presentclass']
+        classteacher = data[0]['classteacher']
+        
+        print(firstname)
+        print(lastname)
+        print(pg)
+        print(paddress)
+        print(pcontact)
+        print(pclass)
+        print(classteacher)
+        query = "INSERT INTO STUDENT(FNAME, LNAME, PARENTORGUARDIAN, ADDRESS, CONTACT, PRESENTCLASS, CLASSTEACHER) VALUES( %s, %s, %s, %s, %s, %s, %s)"
+        bind = (firstname, lastname, phonenumber, Paddress, pcontact, pclass, classteacher)
+        cursor.execute( query, bind )
+        # conn.commit()
+        conn.close()
+
+    return "done"
+
+@app.route('/create_parent', methods=["POST"])
+def create_parent():
+    conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
+    cursor = conn.cursor()
+
+    if request.method=="POST":
+        data = json.loads(request.data,strict=False)
+        firstname = data[0]['fname']
+        lastname = data[0]['lname']
+        phonenumber = data[0]['pnumber']
+        email = data[0]['email']
+        address = data[0]['address']
+        
+        print(firstname)
+        print(lastname)
+        print(phonenumber)
+        print(email)
+        print(address)
+
+        query = "INSERT INTO PARENT_GUARDIAN(FNAME, LNAME, PNUMBER, EMAIL, ADDRESS) VALUES( %s, %s, %s, %s, %s)"
+        bind = (firstname, lastname, phonenumber, email, address)
+        cursor.execute( query, bind )
+        conn.commit()
+        conn.close()
+
+    return "done"
+
+@app.route('/create_subject', methods=["POST"])
+def create_subject():
+    conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
+    cursor = conn.cursor()
+
+    if request.method=="POST":
+        data = json.loads(request.data,strict=False)
+        subject = data[0]['subject']
+ 
+        print(subject)
+
+        query = "INSERT INTO SUBJECT(SUBJECT) VALUES( %s)"
+        bind = (subject,)
+        cursor.execute( query, bind )
+        conn.commit()
+        conn.close()
+
+    return "done"
+
+
+@app.route('/create_staf', methods=["POST"]) 
+def create_staff():
+    conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
+    cursor = conn.cursor()
+
+    if request.method=="POST":
+        data = json.loads(request.data,strict=False)
+        firstname = data[0]['fname']
+        lastname = data[0]['lname']
+        pnumber = data[0]['pnumber']
+        department = data[0]['department']
+        formclass = data[0]['formclass']
+        account = data[0]['accountnumber']
+        salary = data[0]['salary']
+        bank = data[0]['bank']
+        dob = data[0]['dateofbirth']
+        subject = data[0]['subjectteaching']
+        email = data[0]['email']
+        address = data[0]['address']
+        
+        print(firstname)
+        print(lastname)
+        print(phonenumber)
+        print(email)
+        print(address)
+
+        query = "INSERT INTO STAFF(FNAME, LNAME, PNUMBER, DEPARTMENT, FORMCLASS, ACCOUNT, SALARY, BANK, DATEOFBRITH, SUBJECTTEACHING, EMAIL, ADDRESS) VALUES( %s, %s, %s, %s, %s)"
+        bind = (firstname, lastname, phonenumber, email, address)
+        cursor.execute( query, bind )
+        conn.commit()
+        conn.close()
+
+    return "done"
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+ 
