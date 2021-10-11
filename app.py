@@ -176,7 +176,7 @@ def create_staff():
 def all_class():
     conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM ALL_CLASSES')
+    cursor.execute('SELECT * FROM ALL_CLASS')
     rows = cursor.fetchall()
     print(rows)
 
@@ -192,20 +192,52 @@ def all_class():
 def all_students():
     conn = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM STUDENT')
+    cursor.execute('select student_id, student.firstname, student.lastname, parent_guardian.firstname, parent_guardian.lastname, parent_guardian.phonenumber, parent_guardian.email, parent_guardian.address from student join parent_guardian on student.student_id = parent_guardian.pg_id')
     rows = cursor.fetchall()
     print(rows)
 
     data = []
     for row in rows:
-        row_data = {"id": row[0], "fname": row[1], "lname":row[2], "parentorguardian": row[3], "address": row[4], "contact": row[5], "presentclass": row[6], "classteacher": row[7]}   
+        row_data = {"id": row[0], "firstname": row[1], "lastname": row[2], "parent_fname": row[3], "parent_lname": row[4], "parent_pnumber": row[5], "parent_email": row[6], "address": row[7]}   
         data.append(row_data)
 
         conn.close()
     return {"classes": data}
 
+@app.route('/all_parents', methods=["GET"])
+def all_parents():
+    con = getconnection('school_db', 'postgres', 'password', '127.0.0.1', '5432')
+    cursor = conn.cursor()
+    cursor.execute('SELECT FIRSTNAME, LASTNAME, PHONENUMBER FROM parent_guardian')
+    rows = cursor.fetchall()
+    print(rows)
+
+    data = []
+
+    for row in rows:
+        row_data = {"id": row[0], "firstname": row[1], "lastname": row[2], "phonenumber": row[3]}
+        data.append(row_data)
+
+        conn.close()
+
+        return {"parents": data}
 
 
+@app.route('/all_staffs', methods=['GET'])
+def all_staff():
+    getconnection = ("shool_db", "postgres", "password", "127.0.0.1", 5432)
+    cursor = conn.cursor
+    cursor.execute('SELECT ID FIRSTNAME, LASTNAME, PHONENUMBER, ADDRESS, EMAIL FROM STAFF')
+    rows = cursor.fetchall()
+
+    data = []
+    for row in rows:
+        row_data = {'id': row[0], "firstname": row[1], "lastname": row[2], "phonenumber": row[3], "address": row[4], "email": row[5] }
+        data.append(row_data)
+
+        conn.close()
+
+        return {"staffs": data}
 
 
 
